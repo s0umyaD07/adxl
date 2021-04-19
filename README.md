@@ -1,27 +1,4 @@
-  
-/*
- * ADXL345.cpp  Created on: 17 May 2014
- * Copyright (c) 2014 Derek Molloy (www.derekmolloy.ie)
- * Made available for the book "Exploring Raspberry Pi"
- * See: www.exploringrpi.com
- * Licensed under the EUPL V.1.1
- *
- * This Software is provided to You under the terms of the European 
- * Union Public License (the "EUPL") version 1.1 as published by the 
- * European Union. Any use of this Software, other than as authorized 
- * under this License is strictly prohibited (to the extent such use 
- * is covered by a right of the copyright holder of this Software).
- * 
- * This Software is provided under the License on an "AS IS" basis and 
- * without warranties of any kind concerning the Software, including 
- * without limitation merchantability, fitness for a particular purpose, 
- * absence of defects or errors, accuracy, and non-infringement of 
- * intellectual property rights other than copyright. This disclaimer 
- * of warranty is an essential part of the License and a condition for 
- * the grant of any rights to this Software.
- * 
- * For more details, see http://www.derekmolloy.ie/
- */
+ 
 
 #include "ADXL345.h"
 #include <iostream>
@@ -65,22 +42,13 @@ namespace exploringRPi {
 #define FIFO_CTL       0x38   //FIFO control
 #define FIFO_STATUS    0x39   //FIFO status
 
-/**
- * Method to combine two 8-bit registers into a single short, which is 16-bits on the Raspberry Pi. It shifts
- * the MSB 8-bits to the left and then ORs the result with the LSB.
- * @param msb an unsigned character that contains the most significant byte
- * @param lsb an unsigned character that contains the least significant byte
- */
+
 short ADXL345::combineRegisters(unsigned char msb, unsigned char lsb){
    //shift the MSB left by 8 bits and OR with LSB
    return ((short)msb<<8)|(short)lsb;
 }
 
-/**
- * Method to calculate the pitch and roll state values. This calculation takes account of the scaling
- * factors due to the resolution and gravity range to determine gravity weighted values that are used
- * to calculate the angular pitch and roll values in degrees.
- */
+
 void ADXL345::calculatePitchAndRoll(){
 	float gravity_range;
 	switch(ADXL345::range){
@@ -103,11 +71,6 @@ void ADXL345::calculatePitchAndRoll(){
 	this->roll = 180 * atan(accYg/sqrt(accXSquared + accZSquared))/M_PI;
 }
 
-/**
- * Method used to update the DATA_FORMAT register and any other registers that might be added
- * in the future.
- * @return 0 if the register is updated successfully
- */
 int ADXL345::updateRegisters(){
    //update the DATA_FORMAT register
    char data_format = 0x00;  //+/- 2g with normal resolution
@@ -117,13 +80,7 @@ int ADXL345::updateRegisters(){
    return this->writeRegister(DATA_FORMAT, data_format);
 }
 
-/**
- * The constructor for the ADXL345 accelerometer object. It passes the bus number and the
- * device address (with is 0x53 by default) to the constructor of I2CDevice. All of the states
- * are initialized and the registers are updated.
- * @param I2CBus The bus number that the ADXL345 device is on - typically 0 or 1
- * @param I2CAddress The address of the ADLX345 device (default 0x53, but can be altered)
- */
+
 ADXL345::ADXL345(unsigned int I2CBus, unsigned int I2CAddress):
 	I2CDevice(I2CBus, I2CAddress){   // this member initialisation list calls the parent constructor
 	this->I2CAddress = I2CAddress;
@@ -140,12 +97,6 @@ ADXL345::ADXL345(unsigned int I2CBus, unsigned int I2CAddress):
 	this->updateRegisters();
 }
 
-/**
- * Read the sensor state. This method checks that the device is being correctly
- * read by using the device ID of the ADXL345 sensor. It will read in the accelerometer registers
- * and pass them to the combineRegisters() method to be processed.
- * @return 0 if the registers are successfully read and -1 if the device ID is incorrect.
- */
 int ADXL345::readSensorState(){
 	this->registers = this->readRegisters(BUFFER_SIZE, 0x00);
 	if(*this->registers!=0xe5){
@@ -161,28 +112,19 @@ int ADXL345::readSensorState(){
 	return 0;
 }
 
-/**
- * Set the ADXL345 gravity range according to the RANGE enumeration
- * @param range One of the four possible gravity ranges defined by the RANGE enumeration
- */
+
 void ADXL345::setRange(ADXL345::RANGE range) {
 	this->range = range;
 	updateRegisters();
 }
 
-/**
- * Set the ADXL345 resolution according to the RESOLUTION enumeration
- * @param resolution either HIGH or NORMAL resolution. HIGH resolution is only available if the range is set to +/- 16g
- */
+
 void ADXL345::setResolution(ADXL345::RESOLUTION resolution) {
 	this->resolution = resolution;
 	updateRegisters();
 }
 
-/**
- * Useful debug method to display the pitch and roll values in degrees on a single standard output line
- * @param iterations The number of 0.1s iterations to take place.
- */
+
 void ADXL345::displayPitchAndRoll(int iterations){
 	int count = 0;
 	while(count < iterations){
